@@ -4,8 +4,8 @@
 (function () {
   // Paste these from Supabase: Project Settings, then API. Both are safe to publish:
   // the security rules in portal-setup/schema.sql decide what each person can see.
-  var SUPABASE_URL = 'PASTE-YOUR-SUPABASE-URL';
-  var SUPABASE_ANON_KEY = 'PASTE-YOUR-SUPABASE-ANON-KEY';
+  var SUPABASE_URL = 'https://ebakrrsdpwuhcdouiyep.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYWtycnNkcHd1aGNkb3VpeWVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjc3NDgsImV4cCI6MjEwODk0Mzc0OH0.wtT201P-cRJyBSMktOiZZj7B5jzXuAqZQN4MaCWE4KY';
 
   var SUBJECTS = [
     { id: 'maths', name: 'Maths' },

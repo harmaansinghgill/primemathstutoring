@@ -96,17 +96,19 @@ The four guides (GCSE Maths, GCSE Further Maths, A-level Maths, A-level Further 
 
 ## Student area
 
-See `portal-setup/README.md`. Until it's connected to Supabase, the page at /portal shows "Coming soon".
+The student area runs on the Supabase project **prime-maths-tutoring** (London), which is connected and has the database and security rules in place. See `portal-setup/README.md` for how it works and how to add students.
 
 ## To-do list
 
-- [ ] Set up the student area (`portal-setup/README.md`), then upload the four guide PDFs as resources
+- [x] Create the Supabase project, database and security rules, and connect the website
+- [ ] In Supabase: turn off "Allow new users to sign up", set the Site URL and Redirect URL, and create your own admin login (steps 3 to 5 of `portal-setup/README.md`)
+- [ ] Upload the four guide PDFs as resources in the student area
 
 - [ ] If lessons move from Zoom to Discord, change the mentions of Zoom in `index.html` (the "At a glance" box, step 3 of How It Works, and the "Are lessons online?" FAQ, which also feeds Google's copy of the FAQs), `contact.html` (Quick answers) and `llms.txt`. Search each file for `Zoom`.
 
-- [ ] Connect www.primemathstutoring.co.uk (see "Connecting your domain")
+- [x] Connect www.primemathstutoring.co.uk (see "Connecting your domain")
 - [x] Get a Web3Forms access key (done: it's in `site.js`)
-- [ ] Set up email forwarding for `hello@primemathstutoring.co.uk` (see above)
+- [x] Set up email forwarding for `hello@primemathstutoring.co.uk` (see above)
 - [ ] Add a photo of Harmaan
 - [ ] Keep adding feedback to the carousel as it comes in (with permission)
 - [ ] Add social media links to the footer, if you want them

@@ -290,3 +290,17 @@ create policy "Students remove their own hand-ins" on storage.objects
     bucket_id = 'portal' and (storage.foldername(name))[1] = 'submissions'
     and (storage.foldername(name))[2] = auth.uid()::text
   );
+
+-- Access ---------------------------------------------------------------------------------------------
+-- Logged-in people reach the tables (the rules above decide which rows); logged-out visitors get nothing.
+
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.profiles, public.homework, public.homework_students,
+  public.submissions, public.homework_answers, public.resources to authenticated;
+revoke all on public.profiles, public.homework, public.homework_students,
+  public.submissions, public.homework_answers, public.resources from anon;
+
+-- The helper functions only run inside the rules and triggers above, not as calls from the website.
+revoke execute on function public.handle_new_user(), public.protect_profile(), public.protect_submission() from public, anon, authenticated;
+revoke execute on function public.is_staff(), public.is_admin() from public, anon;
+grant execute on function public.is_staff(), public.is_admin() to authenticated;

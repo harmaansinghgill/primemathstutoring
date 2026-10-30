@@ -2,6 +2,8 @@
 
 The student area at **primemathstutoring.co.uk/portal** runs on **Supabase**, a free service that handles logins, the database and file storage. Until it's connected, the page shows "Coming soon", so nothing breaks while you set it up.
 
+**Done already:** the project **prime-maths-tutoring** (London) exists, steps 1, 2 and 6 are complete, and the website is connected. Only steps 3, 4 and 5 are left.
+
 It takes about 20 minutes. You only do this once.
 
 **Quicker option:** make a free Supabase account (sign in with GitHub), then connect the **Supabase connector** in Claude (claude.ai, Settings, Connectors). That lets Claude create the project, add the database and security rules, and fetch the two website keys for you, without you sharing any password. You then only need to do steps 3, 4 and 5 below yourself (a few switches, and making your own login, so your password stays with you).
