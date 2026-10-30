@@ -1,4 +1,4 @@
-// Prime Maths Tutoring: shared script for the home page and the booking page.
+// Prime Maths Tutoring: shared script for every page except the student area.
 (function () {
   var year = document.getElementById('year');
   if (year) year.textContent = new Date().getFullYear();
@@ -129,7 +129,8 @@
     if (!nav) return;
     var header = document.querySelector('.site-header');
     var tabs = Array.prototype.slice.call(nav.querySelectorAll('a[data-section]'));
-    if (!tabs.length) return;
+    // On the other pages the section tabs are plain links back to the home page.
+    if (!tabs.length || !document.getElementById('top')) return;
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var GAP = 24;
     // After a tab is pressed, hold its highlight until the page arrives (or the visitor scrolls themselves).

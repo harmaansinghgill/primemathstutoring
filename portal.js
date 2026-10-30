@@ -1,5 +1,5 @@
 // Prime Maths Tutoring student area.
-// Logging in, homework, hand-ins, marking and resources, all stored in Supabase.
+// Logging in, homework, hand-ins, self-marking, marking and resources, all stored in Supabase.
 // Setup steps are in portal-setup/README.md.
 (function () {
   // Paste these from Supabase: Project Settings, then API. Both are safe to publish:
@@ -49,6 +49,15 @@
     var b = form.querySelector('button[type="submit"]');
     if (b) b.disabled = on;
   }
+  // Adds up marks written like "4/5" and "9/10". Anything else is left as written.
+  function totalMark(a, b) {
+    var re = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/;
+    var x = re.exec(a || ''), y = re.exec(b || '');
+    if (!x || !y) return '';
+    var add = function (p, q) { return Math.round((parseFloat(p) + parseFloat(q)) * 100) / 100; };
+    return add(x[1], y[1]) + '/' + add(x[2], y[2]);
+  }
+  function multiline(text) { return esc(text).replace(/\n/g, '<br>'); }
   function friendly(error) {
     var m = (error && error.message) || '';
     if (/Invalid login credentials/i.test(m)) return 'That email and password don\'t match. Check them and try again.';
@@ -237,9 +246,12 @@
         client.from('homework').select('*').order('due_date', { ascending: true }),
         client.from('submissions').select('*'),
         client.from('resources').select('*').order('created_at', { ascending: false }),
+        client.from('homework_answers').select('*'),
       ]).then(function (r) {
         r.forEach(function (x) { if (x.error) throw x.error; });
-        Student.data = { homework: r[0].data, submissions: r[1].data, resources: r[2].data };
+        var answers = {};
+        r[3].data.forEach(function (a) { answers[a.homework_id] = a; });
+        Student.data = { homework: r[0].data, submissions: r[1].data, resources: r[2].data, answers: answers };
         var subjects = (me.subjects || []).map(function (id) { return { id: id, name: subjectName(id) }; });
         if (!subjects.length) {
           $('subject-tabs').innerHTML = '';
@@ -288,45 +300,75 @@
         '<header><h3>' + esc(h.title) + '</h3><span class="chip-status">' + esc(chip) + '</span></header>';
       if (h.instructions) html += '<p class="hw-instructions">' + esc(h.instructions) + '</p>';
       if (h.attachment_path) html += '<p>' + fileButton(h.attachment_path, h.attachment_name, 'Download ' + (h.attachment_name || 'worksheet')) + '</p>';
+      var selfMarking = !!h.self_mark_questions;
+      if (selfMarking) html += Student.selfMarkBox(h, s);
       if (s && s.marked_at) {
-        html += '<div class="hw-feedback"><p class="hw-mark">' + esc(s.mark || 'Marked') + '</p>' +
-          (s.feedback ? '<p>' + esc(s.feedback) + '</p>' : '') + '</div>';
+        var rows = selfMarking
+          ? '<div class="hw-scores">' +
+              (s.self_mark ? '<p><span>Your marking</span><strong>' + esc(s.self_mark) + '</strong></p>' : '') +
+              (s.mark ? '<p><span>Tutor\'s marking</span><strong>' + esc(s.mark) + '</strong></p>' : '') +
+              (totalMark(s.self_mark, s.mark) ? '<p class="hw-total"><span>Total</span><strong>' + esc(totalMark(s.self_mark, s.mark)) + '</strong></p>' : '') +
+            '</div>'
+          : '<p class="hw-mark">' + esc(s.mark || 'Marked') + '</p>';
+        html += '<div class="hw-feedback">' + rows + (s.feedback ? '<p>' + multiline(s.feedback) + '</p>' : '') + '</div>';
       }
       if (s) {
+        var canRemove = !s.marked_at && (s.files || []).length > 1;
         html += '<div class="hw-files"><p class="portal-small portal-muted">Your hand-in</p>' +
-          (s.files || []).map(function (f) { return fileButton(f.path, f.name); }).join('') +
+          (s.files || []).map(function (f) {
+            return '<span class="file-row">' + fileButton(f.path, f.name) +
+              (canRemove ? '<button type="button" class="text-button file-remove" data-path="' + esc(f.path) + '">Remove</button>' : '') + '</span>';
+          }).join('') +
+          (s.self_mark && !s.marked_at ? '<p class="portal-small">Your self-mark: <strong>' + esc(s.self_mark) + '</strong></p>' : '') +
           (s.note ? '<p class="portal-small">' + esc(s.note) + '</p>' : '') + '</div>';
       }
       if (!s || !s.marked_at) {
+        var id = esc(h.id);
         html += '<form class="form hw-upload" novalidate>' +
-          '<div class="field"><label for="up-' + esc(h.id) + '">' + (s ? 'Replace your hand-in' : 'Hand in your work') + ' <span class="optional">PDF or photos</span></label>' +
-          '<input id="up-' + esc(h.id) + '" type="file" accept=".pdf,image/*" multiple required></div>' +
-          '<div class="field"><label for="note-' + esc(h.id) + '">Note for your tutor <span class="optional">Optional</span></label>' +
-          '<textarea id="note-' + esc(h.id) + '" rows="2"></textarea></div>' +
-          '<button class="btn btn-small" type="submit">' + (s ? 'Replace hand-in' : 'Hand in') + '</button>' +
+          '<div class="field"><label for="up-' + id + '">' + (s ? 'Add more files' : 'Hand in your work') + ' <span class="optional">' + (s ? 'Optional, ' : '') + 'PDF or photos</span></label>' +
+          '<input id="up-' + id + '" type="file" accept=".pdf,image/*" multiple' + (s ? '' : ' required') + '></div>' +
+          (selfMarking && (h.answers_when !== 'after' || s)
+            ? '<div class="field"><label for="self-' + id + '">Your score for ' + esc(h.self_mark_questions) + ' <span class="optional">e.g. 7/10</span></label>' +
+              '<input id="self-' + id + '" class="self-mark-input" value="' + esc((s && s.self_mark) || '') + '" inputmode="text" autocomplete="off"></div>'
+            : '') +
+          '<div class="field"><label for="note-' + id + '">Note for your tutor <span class="optional">Optional</span></label>' +
+          '<textarea id="note-' + id + '" rows="2">' + esc((s && s.note) || '') + '</textarea></div>' +
+          '<button class="btn btn-small" type="submit">' + (s ? 'Save changes' : 'Hand in') + '</button>' +
           '<p class="form-status" role="status" aria-live="polite"></p></form>';
       }
       return html + '</article>';
+    },
+    // Which questions to mark yourself, and the answers once the tutor allows them.
+    selfMarkBox: function (h, s) {
+      var a = Student.data.answers[h.id];
+      var html = '<div class="self-mark-box"><p><strong>Mark ' + esc(h.self_mark_questions) + ' yourself</strong>, in a different colour pen, then add your score when you hand in. Your tutor marks the rest.</p>';
+      if (a) {
+        html += (a.answers ? '<div class="self-mark-answers"><p class="portal-small portal-muted">Answers</p><p>' + multiline(a.answers) + '</p></div>' : '') +
+          (a.file_path ? '<p>' + fileButton(a.file_path, a.file_name, 'Answers: ' + (a.file_name || 'download')) + '</p>' : '');
+      } else if (h.answers_when === 'after' && !s) {
+        html += '<p class="portal-small portal-muted">The answers appear here once you\'ve handed in.</p>';
+      }
+      return html + '</div>';
     },
     handIn: function (form) {
       var card = form.closest('.hw-card'), hwId = card.dataset.id;
       var files = Array.prototype.slice.call(form.querySelector('input[type="file"]').files);
       var note = form.querySelector('textarea').value.trim();
-      if (!files.length) return say(form, 'Choose at least one file.', 'error');
+      var selfInput = form.querySelector('.self-mark-input');
       var existing = Student.data.submissions.filter(function (s) { return s.homework_id === hwId; })[0];
-      busy(form, true); say(form, 'Uploading ' + files.length + (files.length === 1 ? ' file…' : ' files…'));
+      if (!files.length && !existing) return say(form, 'Choose at least one file.', 'error');
+      busy(form, true); say(form, files.length ? 'Uploading ' + files.length + (files.length === 1 ? ' file…' : ' files…') : 'Saving…');
       Promise.all(files.map(function (f) {
         return upload('submissions/' + me.id + '/' + hwId + '/' + safeFileName(f.name), f).then(function (path) { return { path: path, name: f.name }; });
       })).then(function (uploaded) {
+        // New files are added to what's already handed in, so photos of the marking can go up afterwards.
+        var change = { files: (existing ? existing.files || [] : []).concat(uploaded), note: note };
+        if (selfInput) change.self_mark = selfInput.value.trim() || null;
         var write = existing
-          ? client.from('submissions').update({ files: uploaded, note: note }).eq('id', existing.id).select().single()
-          : client.from('submissions').insert({ homework_id: hwId, files: uploaded, note: note }).select().single();
+          ? client.from('submissions').update(change).eq('id', existing.id).select().single()
+          : client.from('submissions').insert(Object.assign({ homework_id: hwId }, change)).select().single();
         return write.then(function (res) {
           if (res.error) throw res.error;
-          // Tidy away the files this hand-in replaced.
-          if (existing && existing.files && existing.files.length) {
-            client.storage.from(BUCKET).remove(existing.files.map(function (f) { return f.path; }));
-          }
           return Student.load();
         });
       }).catch(function (e) {
@@ -334,7 +376,22 @@
         say(form, friendly(e), 'error');
       });
     },
+    removeFile: function (button) {
+      var hwId = button.closest('.hw-card').dataset.id;
+      var s = Student.data.submissions.filter(function (x) { return x.homework_id === hwId; })[0];
+      var path = button.dataset.path;
+      button.disabled = true;
+      client.from('submissions').update({ files: s.files.filter(function (f) { return f.path !== path; }) }).eq('id', s.id).select().single().then(function (res) {
+        if (res.error) { button.disabled = false; return alertInline(button, friendly(res.error)); }
+        client.storage.from(BUCKET).remove([path]);
+        Student.load();
+      });
+    },
   };
+  $('student-homework').addEventListener('click', function (e) {
+    var b = e.target.closest('.file-remove');
+    if (b) Student.removeFile(b);
+  });
   $('student-homework').addEventListener('submit', function (e) {
     if (!e.target.classList.contains('hw-upload')) return;
     e.preventDefault();
@@ -359,9 +416,12 @@
         client.from('homework_students').select('*'),
         client.from('submissions').select('*'),
         client.from('resources').select('*').order('created_at', { ascending: false }),
+        client.from('homework_answers').select('*'),
       ]).then(function (r) {
         r.forEach(function (x) { if (x.error) throw x.error; });
-        Staff.data = { profiles: r[0].data, homework: r[1].data, assigned: r[2].data, submissions: r[3].data, resources: r[4].data };
+        var answers = {};
+        r[5].data.forEach(function (a) { answers[a.homework_id] = a; });
+        Staff.data = { profiles: r[0].data, homework: r[1].data, assigned: r[2].data, submissions: r[3].data, resources: r[4].data, answers: answers };
         Staff.renderHomeworkForm();
         Staff.renderHomework();
         Staff.renderStudents();
@@ -391,6 +451,8 @@
         var who = d.assigned.filter(function (a) { return a.homework_id === h.id; });
         var subs = d.submissions.filter(function (s) { return s.homework_id === h.id; });
         var marked = subs.filter(function (s) { return s.marked_at; }).length;
+        var selfMarking = !!h.self_mark_questions;
+        var ans = d.answers[h.id];
         var rows = who.map(function (a) {
           var s = subs.filter(function (x) { return x.student_id === a.student_id; })[0];
           var state = !s ? '<span class="chip-status is-due">Not handed in</span>'
@@ -398,11 +460,19 @@
             : '<span class="chip-status is-handed-in">Handed in ' + esc(formatDate(s.submitted_at)) + '</span>';
           var body = '';
           if (s) {
+            var sid = esc(s.id);
+            var total = totalMark(s.self_mark, s.mark);
             body = '<div class="hw-files">' + (s.files || []).map(function (f) { return fileButton(f.path, f.name); }).join('') +
               (s.note ? '<p class="portal-small">&ldquo;' + esc(s.note) + '&rdquo;</p>' : '') + '</div>' +
-              '<form class="form mark-form" data-id="' + esc(s.id) + '" novalidate>' +
-              '<div class="field-row"><div class="field"><label for="mark-' + esc(s.id) + '">Mark</label>' +
-              '<input id="mark-' + esc(s.id) + '" value="' + esc(s.mark || '') + '" placeholder="e.g. 18/20"></div></div>' +
+              '<form class="form mark-form" data-id="' + sid + '" novalidate>' +
+              (selfMarking
+                ? '<div class="field-row"><div class="field"><label for="selfmark-' + sid + '">Their self-mark <span class="optional">Check it, ' + esc(h.self_mark_questions) + '</span></label>' +
+                  '<input id="selfmark-' + sid + '" value="' + esc(s.self_mark || '') + '" placeholder="Not given"></div>' +
+                  '<div class="field"><label for="mark-' + sid + '">Your mark <span class="optional">The rest</span></label>' +
+                  '<input id="mark-' + sid + '" value="' + esc(s.mark || '') + '" placeholder="e.g. 9/10"></div></div>' +
+                  (total ? '<p class="portal-small">Total so far: <strong>' + esc(total) + '</strong></p>' : '')
+                : '<div class="field-row"><div class="field"><label for="mark-' + sid + '">Mark</label>' +
+                  '<input id="mark-' + sid + '" value="' + esc(s.mark || '') + '" placeholder="e.g. 18/20"></div></div>') +
               '<div class="field"><label for="fb-' + esc(s.id) + '">Feedback</label>' +
               '<textarea id="fb-' + esc(s.id) + '" rows="2">' + esc(s.feedback || '') + '</textarea></div>' +
               '<button class="btn btn-small" type="submit">' + (s.marked_at ? 'Update mark' : 'Save mark') + '</button>' +
@@ -416,6 +486,13 @@
           '<span class="portal-small">' + subs.length + ' of ' + who.length + ' handed in' + (marked ? ', ' + marked + ' marked' : '') + '</span></summary>' +
           (h.instructions ? '<p class="hw-instructions">' + esc(h.instructions) + '</p>' : '') +
           (h.attachment_path ? '<p>' + fileButton(h.attachment_path, h.attachment_name, 'Worksheet: ' + (h.attachment_name || 'download')) + '</p>' : '') +
+          (selfMarking
+            ? '<div class="self-mark-box"><p><strong>Students mark ' + esc(h.self_mark_questions) + ' themselves.</strong> ' +
+                (h.answers_when === 'after' ? 'Answers show once they hand in.' : 'Answers show straight away.') + '</p>' +
+                (ans && ans.answers ? '<div class="self-mark-answers"><p>' + multiline(ans.answers) + '</p></div>' : '') +
+                (ans && ans.file_path ? '<p>' + fileButton(ans.file_path, ans.file_name, 'Answers: ' + (ans.file_name || 'download')) + '</p>' : '') +
+              '</div>'
+            : '') +
           (rows || '<p class="empty">Not set for anyone.</p>') +
           '<div class="danger-zone"><button type="button" class="text-button hw-delete">Delete this homework</button></div>' +
           '</details>';
@@ -464,17 +541,24 @@
     ['homework', 'students', 'resources'].forEach(function (p) { $('panel-' + p).hidden = p !== b.dataset.panel; });
   });
   $('hw-subject').addEventListener('change', function () { Staff.renderHomeworkForm(); });
+  $('hw-self').addEventListener('input', function () { $('hw-self-more').hidden = !$('hw-self').value.trim(); });
 
   $('hw-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var form = e.target;
     var title = $('hw-title-input').value.trim(), due = $('hw-due').value, subject = $('hw-subject').value;
     var file = $('hw-file').files[0];
+    var selfQs = $('hw-self').value.trim();
+    var answersText = selfQs ? $('hw-answers-text').value.trim() : '';
+    var answersFile = selfQs ? $('hw-answers-file').files[0] : null;
     var students = Array.prototype.map.call($('hw-students').querySelectorAll('input:checked'), function (i) { return i.value; });
     if (!title || !due) return say(form, 'Add a title and a due date.', 'error');
     if (!students.length) return say(form, 'Choose at least one student.', 'error');
     busy(form, true); say(form, 'Setting homework…');
-    client.from('homework').insert({ subject: subject, title: title, instructions: $('hw-instructions').value.trim(), due_date: due })
+    client.from('homework').insert({
+      subject: subject, title: title, instructions: $('hw-instructions').value.trim(), due_date: due,
+      self_mark_questions: selfQs, answers_when: $('hw-answers-when').value,
+    })
       .select().single().then(function (res) {
         if (res.error) throw res.error;
         var hw = res.data;
@@ -485,12 +569,20 @@
           : Promise.resolve({});
         return attach.then(function (r) {
           if (r && r.error) throw r.error;
+          if (!answersText && !answersFile) return {};
+          var answersUpload = answersFile ? upload('answers/' + hw.id + '/' + safeFileName(answersFile.name), answersFile) : Promise.resolve(null);
+          return answersUpload.then(function (path) {
+            return client.from('homework_answers').insert({ homework_id: hw.id, answers: answersText, file_path: path, file_name: path ? answersFile.name : null });
+          });
+        }).then(function (r) {
+          if (r && r.error) throw r.error;
           return client.from('homework_students').insert(students.map(function (id) { return { homework_id: hw.id, student_id: id }; }));
         });
       }).then(function (res) {
         if (res && res.error) throw res.error;
         busy(form, false);
         form.reset();
+        $('hw-self-more').hidden = true;
         say(form, 'Homework set.', 'success');
         return Staff.load();
       }).catch(function (err) {
@@ -505,11 +597,13 @@
     e.preventDefault();
     var id = form.dataset.id;
     busy(form, true); say(form, 'Saving…');
-    client.from('submissions').update({
+    var change = {
       mark: $('mark-' + id).value.trim() || null,
       feedback: $('fb-' + id).value.trim() || null,
       marked_at: new Date().toISOString(),
-    }).eq('id', id).select().single().then(function (res) {
+    };
+    if ($('selfmark-' + id)) change.self_mark = $('selfmark-' + id).value.trim() || null;
+    client.from('submissions').update(change).eq('id', id).select().single().then(function (res) {
       busy(form, false);
       if (res.error) return say(form, friendly(res.error), 'error');
       var openId = form.closest('details').dataset.id;
@@ -531,6 +625,8 @@
     var hw = Staff.data.homework.filter(function (h) { return h.id === b.closest('details').dataset.id; })[0];
     var paths = [];
     if (hw.attachment_path) paths.push(hw.attachment_path);
+    var ans = Staff.data.answers[hw.id];
+    if (ans && ans.file_path) paths.push(ans.file_path);
     Staff.data.submissions.forEach(function (s) {
       if (s.homework_id === hw.id) (s.files || []).forEach(function (f) { paths.push(f.path); });
     });

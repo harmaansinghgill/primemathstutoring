@@ -14,7 +14,7 @@ A website for Prime Maths Tutoring: a home page, a booking page, a contact page,
 | `404.html` | The page people see if they follow a broken link |
 | `guides.html`, `guides/` | The Guides page and the four guides. Only the opening sections are public; the full versions are PDFs for students |
 | `katex/` | Fonts and styles for the typeset maths in the guides |
-| `portal.html`, `portal.js` | The student area (log in, homework, hand-ins, marks and resources) |
+| `portal.html`, `portal.js` | The student area (log in, homework, hand-ins, self-marking, marks and resources) |
 | `vendor/supabase.js` | The library the student area uses to talk to Supabase |
 | `portal-setup/` | The database and security rules for the student area, and step-by-step setup instructions |
 | `site.js` | The moving parts: the feedback carousel, the tabs and sending the forms |

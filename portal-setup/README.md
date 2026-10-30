@@ -4,6 +4,8 @@ The student area at **primemathstutoring.co.uk/portal** runs on **Supabase**, a 
 
 It takes about 20 minutes. You only do this once.
 
+**Quicker option:** make a free Supabase account (sign in with GitHub), then connect the **Supabase connector** in Claude (claude.ai, Settings, Connectors). That lets Claude create the project, add the database and security rules, and fetch the two website keys for you, without you sharing any password. You then only need to do steps 3, 4 and 5 below yourself (a few switches, and making your own login, so your password stays with you).
+
 ## 1. Create the Supabase project
 
 1. Go to **supabase.com** and sign up. Signing in with your GitHub account is quickest.
@@ -62,6 +64,7 @@ Both values are designed to be public. The security rules from step 2 decide wha
 Go to **primemathstutoring.co.uk/portal** and log in. You'll see the tutor area with three tabs:
 
 - **Homework:** set homework for a subject, with an optional worksheet, for some or all of the students taking it. Open any piece of homework to see who has handed in, download their work, and give a mark and feedback.
+- **Self-marking:** when setting homework, fill in **Questions they mark themselves** (for example "Questions 1 to 5"). You can then type the answers, upload a mark scheme, or both, and choose whether students see them **straight away** or **once they've handed in**. Students mark those questions in a different colour pen, upload their work and enter their score. When you mark it, you check their self-mark (and correct it if needed), add your mark for the rest, and the student sees both marks and the total.
 - **Students:** set each student's name and subjects. Subjects decide which tabs, homework and resources they see.
 - **Resources:** share slides, notes and the full guides, either with everyone taking a subject, with all students, or with one student only.
 

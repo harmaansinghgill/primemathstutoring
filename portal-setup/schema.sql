@@ -3,7 +3,8 @@
 --
 -- Who can do what:
 --   * Students can only see their own homework, their own submissions and the resources for their subjects.
---   * Students can hand in homework, but cannot change marks or feedback.
+--   * Students can hand in homework and mark part of it themselves, but cannot change the tutor's mark or feedback.
+--   * Answers for self-marking are hidden until the tutor says (straight away, or once the student has handed in).
 --   * Tutors and admins can see everything, set homework, mark it and share resources.
 --   * Only admins can change someone's role.
 -- Nobody can create an account from the website: accounts are added in the Supabase dashboard.
@@ -80,6 +81,10 @@ create table public.homework (
   due_date date,
   attachment_path text,
   attachment_name text,
+  -- Self-marking: which questions the student marks themselves (blank if the tutor marks everything),
+  -- and whether they see the answers straight away or only once they've handed in.
+  self_mark_questions text not null default '',
+  answers_when text not null default 'now' check (answers_when in ('now', 'after')),
   created_by uuid references public.profiles (id) on delete set null default auth.uid(),
   created_at timestamptz not null default now()
 );
@@ -122,7 +127,8 @@ create table public.submissions (
   files jsonb not null default '[]',
   note text not null default '',
   submitted_at timestamptz not null default now(),
-  mark text,
+  self_mark text,                     -- the student's own score for the questions they marked
+  mark text,                          -- the tutor's mark
   feedback text,
   marked_at timestamptz,
   unique (homework_id, student_id)
@@ -175,6 +181,38 @@ create policy "Students update their own work, staff mark it" on public.submissi
 create policy "Staff remove submissions" on public.submissions
   for delete using (public.is_staff());
 
+-- Answers for self-marking ---------------------------------------------------------------------------
+-- Kept apart from the homework so students only get them when the tutor allows.
+
+create table public.homework_answers (
+  homework_id uuid primary key references public.homework (id) on delete cascade,
+  answers text not null default '',
+  file_path text,
+  file_name text
+);
+
+alter table public.homework_answers enable row level security;
+
+create policy "Students see answers once allowed, staff see all" on public.homework_answers
+  for select using (
+    public.is_staff()
+    or exists (
+      select 1 from public.homework h
+      join public.homework_students hs on hs.homework_id = h.id and hs.student_id = auth.uid()
+      where h.id = homework_answers.homework_id
+        and (
+          h.answers_when = 'now'
+          or exists (select 1 from public.submissions s where s.homework_id = h.id and s.student_id = auth.uid())
+        )
+    )
+  );
+create policy "Staff add answers" on public.homework_answers
+  for insert with check (public.is_staff());
+create policy "Staff edit answers" on public.homework_answers
+  for update using (public.is_staff()) with check (public.is_staff());
+create policy "Staff remove answers" on public.homework_answers
+  for delete using (public.is_staff());
+
 -- Resources (slides, notes, guides) -----------------------------------------------------------------
 
 create table public.resources (
@@ -209,6 +247,7 @@ create policy "Staff remove resources" on public.resources
 -- Files --------------------------------------------------------------------------------------------
 -- One private bucket, organised as:
 --   homework/<homework id>/<file>            set by tutors
+--   answers/<homework id>/<file>             answers for self-marking, set by tutors
 --   submissions/<student id>/<homework id>/<file>  handed in by students
 --   resources/<resource id>/<file>           shared by tutors
 
@@ -225,6 +264,11 @@ create policy "Students open homework files set for them" on storage.objects
   for select using (
     bucket_id = 'portal' and (storage.foldername(name))[1] = 'homework'
     and exists (select 1 from public.homework h where h.id::text = (storage.foldername(name))[2])
+  );
+create policy "Students open answers once allowed" on storage.objects
+  for select using (
+    bucket_id = 'portal' and (storage.foldername(name))[1] = 'answers'
+    and exists (select 1 from public.homework_answers a where a.homework_id::text = (storage.foldername(name))[2])
   );
 create policy "Students open resources shared with them" on storage.objects
   for select using (
