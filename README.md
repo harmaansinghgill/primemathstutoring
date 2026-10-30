@@ -64,7 +64,7 @@ If you own both the `.co.uk` and the `.com`, point the second one at the first u
 
 ## Getting form messages in your email
 
-The booking form (`book.html`) and the question form (`contact.html`) are built into the site. Neither sends until every required box is filled in properly: on the booking form that's the student's name, email, phone, year group and subject. They send through **Web3Forms**, a free service (250 messages a month) that emails each submission to you. Until it's set up, the forms show "This form isn't connected to an inbox yet".
+The booking form (`book.html`) and the question form (`contact.html`) are built into the site. Neither sends until every required box is filled in properly: on the booking form that's the student's name, email, phone, year group and subject. They send through **Web3Forms**, a free service (250 messages a month) that emails each submission to you. It's set up: the access key is in `site.js`. To send form emails somewhere else, get a new key for that address and replace it.
 
 1. Go to https://web3forms.com, enter your **personal email** and click **Create Access Key**.
 2. Check your inbox for the access key (a long code).
@@ -87,7 +87,7 @@ If your main domain turns out to be `.com`, change `primemathstutoring.co.uk` in
 - [ ] If lessons move from Zoom to Discord, change the four mentions of Zoom: `index.html` (the "At a glance" box, step 3 of How It Works, and the "Are lessons online?" FAQ) and `contact.html` (Quick answers). Search each file for `Zoom`.
 
 - [ ] Connect www.primemathstutoring.co.uk (see "Connecting your domain")
-- [ ] Get a Web3Forms access key and paste it into `index.html` (see above)
+- [x] Get a Web3Forms access key (done: it's in `site.js`)
 - [ ] Set up email forwarding for `hello@primemathstutoring.co.uk` (see above)
 - [ ] Add a photo of Harmaan
 - [ ] Keep adding feedback to the carousel as it comes in (with permission)

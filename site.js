@@ -36,7 +36,7 @@
   })();
 
   // Forms: both send to your email through Web3Forms. Paste your access key here (see README).
-  var WEB3FORMS_KEY = 'PASTE-YOUR-ACCESS-KEY-HERE';
+  var WEB3FORMS_KEY = '980257b5-da28-4e19-800e-0b23003da30c';
   var CONTACT_EMAIL = 'hello@primemathstutoring.co.uk';
 
   document.querySelectorAll('form.form').forEach(function (form) {
