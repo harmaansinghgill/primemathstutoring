@@ -129,6 +129,7 @@
     if (!nav) return;
     var header = document.querySelector('.site-header');
     var tabs = Array.prototype.slice.call(nav.querySelectorAll('a[data-section]'));
+    if (!tabs.length) return;
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var GAP = 24;
     // After a tab is pressed, hold its highlight until the page arrives (or the visitor scrolls themselves).

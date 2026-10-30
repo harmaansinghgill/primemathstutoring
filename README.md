@@ -1,6 +1,6 @@
 # Prime Maths Tutoring website
 
-A website for Prime Maths Tutoring: a home page, plus a booking page and a contact page that aren't in the tabs. Buttons and links lead to them. It's plain HTML and CSS with no build step, so it can be hosted for free on GitHub Pages.
+A website for Prime Maths Tutoring: a home page, a booking page, a contact page, free guides and a student area. It's plain HTML and CSS with no build step, so it can be hosted for free on GitHub Pages.
 
 ## What's in here
 
@@ -12,6 +12,11 @@ A website for Prime Maths Tutoring: a home page, plus a booking page and a conta
 | `robots.txt`, `sitemap.xml` | Tell search engines they're welcome and list every page |
 | `llms.txt` | A plain summary of the business for AI assistants such as ChatGPT and Claude. Update it if prices or details change |
 | `404.html` | The page people see if they follow a broken link |
+| `guides.html`, `guides/` | The Guides page and the four guides. Only the opening sections are public; the full versions are PDFs for students |
+| `katex/` | Fonts and styles for the typeset maths in the guides |
+| `portal.html`, `portal.js` | The student area (log in, homework, hand-ins, marks and resources) |
+| `vendor/supabase.js` | The library the student area uses to talk to Supabase |
+| `portal-setup/` | The database and security rules for the student area, and step-by-step setup instructions |
 | `site.js` | The moving parts: the feedback carousel, the tabs and sending the forms |
 | `styles.css` | Colours, fonts and layout |
 | `favicon.svg` | The little icon in the browser tab |
@@ -85,7 +90,17 @@ The contact page shows `hello@primemathstutoring.co.uk`. To make that address fo
 
 If your main domain turns out to be `.com`, change `primemathstutoring.co.uk` in `contact.html` (the email link) and in `site.js` (the `CONTACT_EMAIL` line).
 
+## Guides
+
+The four guides (GCSE Maths, GCSE Further Maths, A-level Maths, A-level Further Maths) are written once and built into two forms: the public web pages in `guides/`, which stop after the opening sections, and full PDFs for students. The full text is deliberately **not** in this repository, because the repository is public. Keep the source files and PDFs you were sent somewhere private, and share the PDFs with students through the student area's Resources tab.
+
+## Student area
+
+See `portal-setup/README.md`. Until it's connected to Supabase, the page at /portal shows "Coming soon".
+
 ## To-do list
+
+- [ ] Set up the student area (`portal-setup/README.md`), then upload the four guide PDFs as resources
 
 - [ ] If lessons move from Zoom to Discord, change the mentions of Zoom in `index.html` (the "At a glance" box, step 3 of How It Works, and the "Are lessons online?" FAQ, which also feeds Google's copy of the FAQs), `contact.html` (Quick answers) and `llms.txt`. Search each file for `Zoom`.
 

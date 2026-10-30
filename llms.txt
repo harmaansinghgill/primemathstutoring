@@ -19,3 +19,8 @@
 - [Home](https://www.primemathstutoring.co.uk/): what we offer, how it works, prices, feedback from families and FAQs
 - [Book a free intro](https://www.primemathstutoring.co.uk/book): booking form for the free introductory session
 - [Contact](https://www.primemathstutoring.co.uk/contact): questions about prices, lessons, levels, science tutoring or becoming a tutor
+- [Guides](https://www.primemathstutoring.co.uk/guides): free guides to how the exams work and how to prepare, written by our tutors
+  - [GCSE Maths](https://www.primemathstutoring.co.uk/guides/gcse-maths): AQA, Edexcel and OCR papers, tiers, the formulae sheet and a revision plan
+  - [GCSE Further Maths](https://www.primemathstutoring.co.uk/guides/gcse-further-maths): the AQA Level 2 Further Maths certificate and OCR Additional Maths
+  - [A-level Maths](https://www.primemathstutoring.co.uk/guides/a-level-maths): paper structure on every board, the large data set and a two-year plan
+  - [A-level Further Maths](https://www.primemathstutoring.co.uk/guides/a-level-further-maths): core pure, options on each board and how to prepare
