@@ -56,9 +56,13 @@
     form.addEventListener('input', clear);
     form.addEventListener('change', clear);
 
-    // A link like contact.html#prices picks the matching topic.
-    var topic = location.hash && form.querySelector('[data-topic="' + location.hash.slice(1) + '"]');
-    if (topic) topic.checked = true;
+    // A link like /contact?topic=prices picks the matching topic, then tidies the address.
+    var wanted = new URLSearchParams(location.search).get('topic') || location.hash.slice(1);
+    var topic = wanted && form.querySelector('[data-topic="' + wanted + '"]');
+    if (topic) {
+      topic.checked = true;
+      try { history.replaceState(null, '', location.pathname); } catch (err) {}
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -117,50 +121,87 @@
     });
   });
 
-  // Section tabs: pressing one lines its heading up just under the top bar and highlights it straight away.
+  // Sections of the home page have their own clean addresses (/feedback, /prices and so on).
+  // Pressing a tab lines its heading up just under the top bar, highlights it straight away and shows its address.
   // While scrolling normally, the tab for the section on screen stays highlighted.
   (function () {
     var nav = document.querySelector('.tabs');
     if (!nav) return;
     var header = document.querySelector('.site-header');
-    // Only tabs that point at a section on this page take part; Contact Us is a normal link to its own page.
-    var links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
+    var tabs = Array.prototype.slice.call(nav.querySelectorAll('a[data-section]'));
     var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var GAP = 24;
     // After a tab is pressed, hold its highlight until the page arrives (or the visitor scrolls themselves).
     var lock = null;
-    var GAP = 24;
 
-    function target(a) {
-      var section = document.querySelector(a.getAttribute('href'));
+    // Address for each section, taken from the tabs: { reviews: '/feedback', ... }
+    var pathFor = {};
+    var sectionFor = { 'at-a-glance': 'top' };
+    tabs.forEach(function (a) {
+      var path = a.getAttribute('href');
+      pathFor[a.dataset.section] = path;
+      sectionFor[path.replace(/^\/+|\/+$/g, '')] = a.dataset.section;
+    });
+
+    function target(id) {
+      var section = document.getElementById(id);
       if (!section) return null;
       return section.querySelector('.section-head') || section;
     }
 
-    function highlight(a) {
-      links.forEach(function (l) {
-        if (l === a) l.setAttribute('aria-current', 'true');
-        else l.removeAttribute('aria-current');
+    function highlight(id) {
+      var active = null;
+      tabs.forEach(function (a) {
+        if (a.dataset.section === id) { a.setAttribute('aria-current', 'true'); active = a; }
+        else a.removeAttribute('aria-current');
       });
       // On phones the tabs scroll sideways, so keep the highlighted one in view.
-      if (a && nav.scrollWidth > nav.clientWidth) {
-        nav.scrollTo({ left: a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2, behavior: still ? 'auto' : 'smooth' });
+      if (active && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollTo({ left: active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2, behavior: still ? 'auto' : 'smooth' });
       }
     }
 
-    links.forEach(function (a) {
+    function go(id, smooth) {
+      var el = target(id);
+      if (!el) return;
+      var top = id === 'top' ? 0 : el.getBoundingClientRect().top + window.scrollY - header.offsetHeight - GAP;
+      top = Math.min(Math.max(0, top), document.documentElement.scrollHeight - window.innerHeight);
+      highlight(id);
+      lock = { top: top, until: Date.now() + 2000 };
+      window.scrollTo({ top: top, behavior: smooth && !still ? 'smooth' : 'auto' });
+    }
+
+    function setAddress(id, replace) {
+      var path = pathFor[id] || '/';
+      if (location.pathname === path && !location.search && !location.hash) return;
+      try { history[replace ? 'replaceState' : 'pushState']({ section: id }, '', path); } catch (err) {}
+    }
+
+    document.querySelectorAll('a[data-section]').forEach(function (a) {
       a.addEventListener('click', function (e) {
-        var el = target(a);
-        if (!el) return;
+        if (!target(a.dataset.section)) return;
         e.preventDefault();
-        var top = a.getAttribute('href') === '#top' ? 0
-          : el.getBoundingClientRect().top + window.scrollY - header.offsetHeight - GAP;
-        var maxTop = document.documentElement.scrollHeight - window.innerHeight;
-        top = Math.min(Math.max(0, top), maxTop);
-        highlight(a);
-        lock = { top: top, until: Date.now() + 2000 };
-        window.scrollTo({ top: top, behavior: still ? 'auto' : 'smooth' });
-        try { history.replaceState(null, '', a.getAttribute('href')); } catch (err) {}
+        go(a.dataset.section, true);
+        setAddress(a.dataset.section, false);
       });
+    });
+
+    // Back and forward buttons move between sections.
+    window.addEventListener('popstate', function () {
+      go(sectionFor[location.pathname.replace(/^\/+|\/+$/g, '')] || 'top', true);
+    });
+
+    // Arriving at a section's address. GitHub sends /feedback and the like to the 404 page,
+    // which hands the section over here; older links with #reviews and so on still work too.
+    window.addEventListener('load', function () {
+      var slug = null;
+      try { slug = sessionStorage.getItem('pmt-section'); sessionStorage.removeItem('pmt-section'); } catch (err) {}
+      slug = slug || new URLSearchParams(location.search).get('section');
+      var id = slug ? sectionFor[slug] : (location.hash && document.getElementById(location.hash.slice(1)) && pathFor[location.hash.slice(1)] ? location.hash.slice(1) : null);
+      if (id) {
+        go(id, false);
+        setAddress(id, true);
+      }
     });
 
     function update() {
@@ -170,14 +211,14 @@
         return;
       }
       var line = header.offsetHeight + window.innerHeight * 0.3;
-      var current = links[0];
-      links.forEach(function (a) {
-        var el = target(a);
-        if (el && el.getBoundingClientRect().top <= line) current = a;
+      var current = tabs[0].dataset.section;
+      tabs.forEach(function (a) {
+        var el = target(a.dataset.section);
+        if (el && el.getBoundingClientRect().top <= line) current = a.dataset.section;
       });
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = links[links.length - 1];
-      if (window.scrollY < 10) current = links[0];
-      if (current.getAttribute('aria-current') !== 'true') highlight(current);
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = tabs[tabs.length - 1].dataset.section;
+      if (window.scrollY < 10) current = tabs[0].dataset.section;
+      if (!nav.querySelector('[data-section="' + current + '"][aria-current]')) highlight(current);
     }
 
     var ticking = false;

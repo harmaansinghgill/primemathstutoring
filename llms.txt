@@ -17,5 +17,5 @@
 ## Pages
 
 - [Home](https://www.primemathstutoring.co.uk/): what we offer, how it works, prices, feedback from families and FAQs
-- [Book a free intro](https://www.primemathstutoring.co.uk/book.html): booking form for the free introductory session
-- [Contact](https://www.primemathstutoring.co.uk/contact.html): questions about prices, lessons, levels, science tutoring or becoming a tutor
+- [Book a free intro](https://www.primemathstutoring.co.uk/book): booking form for the free introductory session
+- [Contact](https://www.primemathstutoring.co.uk/contact): questions about prices, lessons, levels, science tutoring or becoming a tutor

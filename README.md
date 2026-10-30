@@ -8,7 +8,7 @@ A website for Prime Maths Tutoring: a home page, plus a booking page and a conta
 | --- | --- |
 | `index.html` | The home page: almost all the text lives here |
 | `book.html` | The booking page. It isn't in the tabs; the "Book a free intro" buttons lead to it |
-| `contact.html` | The contact page, with a "What's it about?" picker. Links like `contact.html#prices` open it with that topic already picked |
+| `contact.html` | The contact page, with a "What's it about?" picker. Links like `/contact?topic=prices` open it with that topic already picked |
 | `robots.txt`, `sitemap.xml` | Tell search engines they're welcome and list every page |
 | `llms.txt` | A plain summary of the business for AI assistants such as ChatGPT and Claude. Update it if prices or details change |
 | `404.html` | The page people see if they follow a broken link |
