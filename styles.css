@@ -382,6 +382,9 @@ mark {
 .footer-link { color: var(--ink-2); }
 .footer-link:hover { color: var(--brand); }
 
+.not-found { display: grid; gap: 1.1rem; justify-items: start; max-width: 36rem; padding-block: clamp(2rem, 8vw, 5rem); }
+.not-found p:not(.eyebrow) { color: var(--ink-2); }
+
 /* FAQs */
 .faqs { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 6vw, 5rem); align-items: start; }
 .faq-list { border-top: 1px solid var(--line); min-width: 0; }

@@ -9,6 +9,9 @@ A website for Prime Maths Tutoring: a home page, plus a booking page and a conta
 | `index.html` | The home page: almost all the text lives here |
 | `book.html` | The booking page. It isn't in the tabs; the "Book a free intro" buttons lead to it |
 | `contact.html` | The contact page, with a "What's it about?" picker. Links like `contact.html#prices` open it with that topic already picked |
+| `robots.txt`, `sitemap.xml` | Tell search engines they're welcome and list every page |
+| `llms.txt` | A plain summary of the business for AI assistants such as ChatGPT and Claude. Update it if prices or details change |
+| `404.html` | The page people see if they follow a broken link |
 | `site.js` | The moving parts: the feedback carousel, the tabs and sending the forms |
 | `styles.css` | Colours, fonts and layout |
 | `favicon.svg` | The little icon in the browser tab |
@@ -84,7 +87,7 @@ If your main domain turns out to be `.com`, change `primemathstutoring.co.uk` in
 
 ## To-do list
 
-- [ ] If lessons move from Zoom to Discord, change the four mentions of Zoom: `index.html` (the "At a glance" box, step 3 of How It Works, and the "Are lessons online?" FAQ) and `contact.html` (Quick answers). Search each file for `Zoom`.
+- [ ] If lessons move from Zoom to Discord, change the mentions of Zoom in `index.html` (the "At a glance" box, step 3 of How It Works, and the "Are lessons online?" FAQ, which also feeds Google's copy of the FAQs), `contact.html` (Quick answers) and `llms.txt`. Search each file for `Zoom`.
 
 - [ ] Connect www.primemathstutoring.co.uk (see "Connecting your domain")
 - [x] Get a Web3Forms access key (done: it's in `site.js`)

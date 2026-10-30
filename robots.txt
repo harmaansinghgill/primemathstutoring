@@ -1,0 +1,5 @@
+# Everyone is welcome to read this site, including search engines and AI assistants.
+User-agent: *
+Allow: /
+
+Sitemap: https://www.primemathstutoring.co.uk/sitemap.xml
