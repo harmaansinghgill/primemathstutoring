@@ -14,9 +14,9 @@ A website for Prime Maths Tutoring: a home page, a booking page, a contact page,
 | `404.html` | The page people see if they follow a broken link |
 | `guides.html`, `guides/` | The Guides page and the four guides. Only the opening sections are public; the full versions are PDFs for students |
 | `katex/` | Fonts and styles for the typeset maths in the guides |
-| `portal.html`, `portal.js` | The student area (log in, homework, hand-ins, self-marking, marks and resources) |
+| `portal.html`, `portal.js` | The student area: homework, hand-ins, self-marking, marking, messages, notifications and resources |
 | `vendor/supabase.js` | The library the student area uses to talk to Supabase |
-| `portal-setup/` | The database and security rules for the student area, and step-by-step setup instructions |
+| `portal-setup/` | The student area's database, security rules, email sender and schedule, with setup instructions |
 | `site.js` | The moving parts: the feedback carousel, the tabs and sending the forms |
 | `styles.css` | Colours, fonts and layout |
 | `favicon.svg` | The little icon in the browser tab |
@@ -96,13 +96,14 @@ The four guides (GCSE Maths, GCSE Further Maths, A-level Maths, A-level Further 
 
 ## Student area
 
-The student area runs on the Supabase project **prime-maths-tutoring** (London), which is connected and has the database and security rules in place. See `portal-setup/README.md` for how it works and how to add students.
+The student area runs on the Supabase project **prime-maths-tutoring** (London): homework and hand-ins, marking, messages, notifications, and emails for new homework, due dates, marks and messages. See `portal-setup/README.md` for what it does, how to add students, and how to connect the email account.
 
 ## To-do list
 
 - [x] Create the Supabase project, database and security rules, and connect the website
-- [ ] In Supabase: turn off "Allow new users to sign up", set the Site URL and Redirect URL, and create your own admin login (steps 3 to 5 of `portal-setup/README.md`)
-- [ ] Upload the four guide PDFs as resources in the student area
+- [x] In Supabase: turn off "Allow new users to sign up", set the Site URL and Redirect URL, and create your own admin login
+- [ ] Connect a Resend account so notifications are emailed (step 8 of `portal-setup/README.md`)
+- [x] Upload the four guide PDFs as resources in the student area
 
 - [ ] If lessons move from Zoom to Discord, change the mentions of Zoom in `index.html` (the "At a glance" box, step 3 of How It Works, and the "Are lessons online?" FAQ, which also feeds Google's copy of the FAQs), `contact.html` (Quick answers) and `llms.txt`. Search each file for `Zoom`.
 

@@ -1,91 +1,113 @@
-# Setting up the student area
+# The student area
 
-The student area at **primemathstutoring.co.uk/portal** runs on **Supabase**, a free service that handles logins, the database and file storage. Until it's connected, the page shows "Coming soon", so nothing breaks while you set it up.
+The student area at **primemathstutoring.co.uk/portal** runs on **Supabase**, a free service that handles logins, the database, file storage and the emails. Until it's connected, the page shows "Coming soon", so nothing breaks while it's set up.
 
-**Done already:** the project **prime-maths-tutoring** (London) exists, steps 1, 2 and 6 are complete, and the website is connected. Only steps 3, 4 and 5 are left.
+**Done already:** the project **prime-maths-tutoring** (London) is set up with everything below, apart from the email account in step 8. The website is connected.
 
-It takes about 20 minutes. You only do this once.
+## What it does
 
-**Quicker option:** make a free Supabase account (sign in with GitHub), then connect the **Supabase connector** in Claude (claude.ai, Settings, Connectors). That lets Claude create the project, add the database and security rules, and fetch the two website keys for you, without you sharing any password. You then only need to do steps 3, 4 and 5 below yourself (a few switches, and making your own login, so your password stays with you).
+**Students**
+- **Homework**, sorted into **To do**, **Handed in** and **Marked**. Each piece shows when it's due ("Due in 3 days", "Due tomorrow", "Missing"), the worksheet, and any questions to mark themselves.
+- **Handing in**: PDFs or photos, a note for the tutor, and their self-mark score. They can add more files (for example, photos of their marking) or remove a wrong one until it's marked.
+- **Marks and feedback**: their own marking, the tutor's marking and the total.
+- **Comments** under each piece of homework, and a **Messages** tab for talking to their tutor, with photos and files.
+- **Resources**: slides, notes and the full guides.
+- **The bell** at the top: everything new, in one list.
+- **Settings**: which emails they get, and their password.
 
-## 1. Create the Supabase project
+**Tutors and admins**
+- **Homework**: set it (with a worksheet, self-marking and answers), see who has handed in, mark it, change a due date, and comment on each student's work.
+- **To mark**: everything handed in and waiting, oldest first, with the mark form right there.
+- **Messages**: every student's conversation, with unread counts.
+- **Students**: name, subjects, their tutor, a parent or guardian to email updates to, and private tutor notes that students never see.
+- **Resources** and **Settings**.
 
-1. Go to **supabase.com** and sign up. Signing in with your GitHub account is quickest.
-2. Click **New project**.
-   - **Name:** `prime-maths-tutoring`
-   - **Database password:** click *Generate a password* and save it somewhere safe. You won't need it day to day.
-   - **Region:** choose **London** (so data stays in the UK).
-   - **Plan:** Free.
-3. Wait a minute or two while it sets up.
+**Emails and notifications** (everyone can turn each kind off in Settings)
 
-## 2. Add the database and security rules
+| When | Who hears |
+|---|---|
+| Homework is set | The student (and their parent, if turned on) |
+| 7 days, 3 days and 1 day before it's due, if not handed in | The student (parents get the 3 day and 1 day ones) |
+| The day after it was due, if it's still missing | The student, their parent and their tutor |
+| It's handed in | Their tutor |
+| It's marked | The student and their parent, with the mark |
+| A message or comment is sent | The other side (never parents) |
 
-1. In the left menu, open **SQL Editor**, then **New query**.
-2. Open `portal-setup/schema.sql` from this repository, copy everything, paste it in and click **Run**.
-3. It should say **Success. No rows returned**.
+Each person gets at most one email every couple of minutes, listing everything new, with a button straight to it. Several messages in a row are grouped into one notice. Reminders go out at about 4pm UK time.
 
-This creates the tables for students, homework, hand-ins and resources, the private file storage, and the rules that make sure each student can only ever see their own work.
+"Their tutor" is the tutor chosen for them in the Students tab. If none is chosen, whoever set the homework hears; otherwise every admin.
 
-## 3. Turn off public sign-ups
+## How it's built
 
-1. Open **Authentication**, then **Sign In / Providers**.
-2. Turn **off** "Allow new users to sign up" and save.
+| File | What it is |
+|---|---|
+| `schema.sql` | Part 1: people, homework, hand-ins, self-marking, resources, private file storage, and the security rules |
+| `messages-and-notifications.sql` | Part 2: tutors and parents, messages, notifications, email settings, tutor notes and due date reminders |
+| `functions/send-emails/index.ts` | The email sender (a Supabase Edge Function) |
+| `email-schedule.sql` | Part 3: runs the email sender every couple of minutes, and the reminders every day |
 
-Now the only way to get an account is for you to create one.
+The security rules mean each student only ever sees their own homework, work, messages and notifications. Students can't mark their own work, change a mark, or read anyone else's conversation, and only tutors can read tutor notes.
 
-## 4. Point emails back to the website
+## Setting it up from scratch
 
-1. Open **Authentication**, then **URL Configuration**.
-2. Set **Site URL** to `https://www.primemathstutoring.co.uk/portal`.
-3. Under **Redirect URLs**, add `https://www.primemathstutoring.co.uk/portal`.
+You only need this if you ever start a new Supabase project. Everything is already done on the current one.
 
-## 5. Make your own account (as admin)
-
-1. Open **Authentication**, then **Users**, then **Add user**, then **Create new user**.
-2. Enter your email and a password, tick **Auto Confirm User**, and create it.
-3. Open **SQL Editor**, then **New query**, paste this (with your email) and click **Run**:
+1. **Create the project.** At supabase.com, click **New project**: name `prime-maths-tutoring`, region **London**, plan **Free**.
+2. **Add the database.** In **SQL Editor**, run `schema.sql`, then `messages-and-notifications.sql`.
+3. **Turn off public sign-ups.** **Authentication**, then **Sign In / Providers**: turn off "Allow new users to sign up".
+4. **Point emails back to the website.** **Authentication**, then **URL Configuration**: set the Site URL to `https://www.primemathstutoring.co.uk/portal`, and add the same address under Redirect URLs.
+5. **Make your own account.** **Authentication**, then **Users**, then **Add user**: your email, a password, and tick **Auto Confirm User**. Then run this in the SQL Editor:
 
    ```sql
-   update public.profiles
-   set role = 'admin', full_name = 'Harmaan Gill'
-   where email = 'your.email@example.com';
+   update public.profiles set role = 'admin', full_name = 'Harmaan Gill' where email = 'your.email@example.com';
    ```
 
-To add another tutor later, create their account the same way, then change their role to **Tutor** in the Students tab of the tutor area.
+6. **Connect the website.** From **Project Settings**, then **API Keys**, copy the Project URL and the **publishable** key (`sb_publishable_...`) into the top of `portal.js`. Both are safe to publish. Never share a **secret** key.
+7. **Add the email sender.** Deploy `functions/send-emails` as an Edge Function called `send-emails`, with "Verify JWT" turned **off** (it checks its own password instead). Then put your project's address into `email-schedule.sql` and run it.
+8. **Connect an email account** (below).
 
-## 6. Connect the website
+## Step 8: connect an email account (to do)
 
-1. Open **Project Settings**, then **API** (sometimes shown as **Data API**).
-2. Copy the **Project URL** and the **anon public** key.
-3. Send both to Claude, or paste them into the top of `portal.js` in place of `PASTE-YOUR-SUPABASE-URL` and `PASTE-YOUR-SUPABASE-ANON-KEY`.
+Notifications already show under the bell. To also send them as emails, the student area needs an account with **Resend** (resend.com), which sends emails for websites. The free plan covers 3,000 emails a month and 100 a day.
 
-Both values are designed to be public. The security rules from step 2 decide what each person can see. **Never** share the `service_role` key: that one bypasses the rules.
+1. **Sign up** at resend.com.
+2. **Add your domain.** In Resend, open **Domains**, then **Add domain**, and enter `primemathstutoring.co.uk`. Region: **Ireland (eu-west-1)**.
+3. **Add Resend's records in Namecheap.** Resend shows three or four DNS records (a DKIM record called `resend._domainkey`, plus an MX and a TXT record on `send`). In Namecheap, go to **Domain List**, then **Manage**, then **Advanced DNS**, and add each one exactly as shown. They don't touch your website or your hello@ forwarding.
+4. Back in Resend, click **Verify**. It can take a few minutes, sometimes up to a few hours.
+5. **Create an API key.** In Resend, open **API Keys**, then **Create API key**, with **Sending access** only.
+6. **Give it to Supabase.** In Supabase, open **Edge Functions**, then **Secrets**, and add a secret named `RESEND_API_KEY` with the key as its value. (Or ask Claude to set it up: Supabase will ask you to type the key into its own page, so it never passes through the chat.)
 
-## 7. Try it
+Emails come from `notifications@primemathstutoring.co.uk`, and replies go to `hello@primemathstutoring.co.uk`.
 
-Go to **primemathstutoring.co.uk/portal** and log in. You'll see the tutor area with three tabs:
+**Password reset emails can use the same account.** In Supabase, open **Authentication**, then **Emails**, then **SMTP Settings**, turn on custom SMTP and enter:
 
-- **Homework:** set homework for a subject, with an optional worksheet, for some or all of the students taking it. Open any piece of homework to see who has handed in, download their work, and give a mark and feedback.
-- **Self-marking:** when setting homework, fill in **Questions they mark themselves** (for example "Questions 1 to 5"). You can then type the answers, upload a mark scheme, or both, and choose whether students see them **straight away** or **once they've handed in**. Students mark those questions in a different colour pen, upload their work and enter their score. When you mark it, you check their self-mark (and correct it if needed), add your mark for the rest, and the student sees both marks and the total.
-- **Students:** set each student's name and subjects. Subjects decide which tabs, homework and resources they see.
-- **Resources:** share slides, notes and the full guides, either with everyone taking a subject, with all students, or with one student only.
+| Setting | Value |
+|---|---|
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | your Resend API key |
+| Sender email | `notifications@primemathstutoring.co.uk` |
+| Sender name | `Prime Maths Tutoring` |
+
+Until then, reset a student's password yourself by running this in the SQL Editor:
+
+```sql
+update auth.users
+set encrypted_password = extensions.crypt('NewTempPassword1', extensions.gen_salt('bf'))
+where email = 'student@example.com';
+```
 
 ## Adding a student after their intro call
 
-1. **Authentication → Users → Add user → Create new user**: their email, a temporary password, and tick **Auto Confirm User**.
-2. In the tutor area, open **Students**, refresh, and add their name and subjects. Then save.
-3. Give them the temporary password. They can change it with the **Password** button once they've logged in.
+1. **Authentication**, then **Users**, then **Add user**, then **Create new user**: their email, a temporary password, and tick **Auto Confirm User**.
+2. In the tutor area, open **Students** and refresh. Add their name, subjects and tutor, and a parent's email if they'd like updates. Then save.
+3. Give them the temporary password. They can change it in **Settings** once they've logged in.
+
+To add another tutor, create their account the same way, then change their role to **Tutor** in the Students tab.
 
 ## Good to know
 
-- **Free plan limits:** 1 GB of files, 50 MB per file and up to 50,000 active users a month, which is plenty. Free projects pause after a week with no activity at all; if that happens, open the project in Supabase and click **Restore**.
-- **Password reset emails:** Supabase's built-in email sender is only meant for testing and may not reach students. Until you set up your own email sending (**Authentication → Emails → SMTP Settings**, for example with a free Resend or Brevo account), reset a student's password yourself by running this in the SQL Editor:
-
-  ```sql
-  update auth.users
-  set encrypted_password = extensions.crypt('NewTempPassword1', extensions.gen_salt('bf'))
-  where email = 'student@example.com';
-  ```
-
-- **The full guides:** upload the four guide PDFs in the **Resources** tab. Choose **All subjects**, or the matching subject, so the right students can download them.
-- **Data protection:** the student area stores students' names, emails and homework. Add a privacy notice before you start using it with families.
+- **Free plan limits:** 1 GB of files, 50 MB per file, 500,000 Edge Function calls a month, which is plenty. Free projects pause after a week with no activity at all. If that happens, open the project in Supabase and click **Restore**.
+- **Checking emails:** in the SQL Editor, `select title, email_status, emailed_at from notifications order by created_at desc limit 20;` shows what was sent. `sent` means delivered to Resend; `off` means that person turned that kind of email off; `not_configured` means there was no Resend key yet.
+- **Data protection:** the student area stores students' names, emails, homework, messages and parents' emails. Add a privacy notice before you start using it with families.
