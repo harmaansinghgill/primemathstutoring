@@ -312,6 +312,8 @@ mark {
 .price-table thead th:last-child, .price-table td { text-align: right; }
 .price-table tbody th { text-align: left; font-weight: 600; padding: 1.05rem 1.4rem; }
 .price-table tbody th span { display: block; font-weight: 400; font-size: 0.9rem; color: var(--ink-2); }
+.price-table tbody th a { color: var(--ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--brand) 55%, transparent); text-underline-offset: 0.22em; }
+.price-table tbody th a:hover { color: var(--brand); }
 .price-table td { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; padding: 1.05rem 1.4rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .price-table td small { font-family: var(--font-body); font-size: 0.9375rem; font-weight: 600; color: var(--ink-2); letter-spacing: 0; }
 .price-table tbody tr + tr > * { border-top: 1px solid var(--line); }
@@ -384,6 +386,12 @@ mark {
 .booking-page h1 { font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
 .book-points { list-style: none; margin: 0.25rem 0 0; padding: 0; display: grid; gap: 0.85rem; }
 .book-points li { padding-left: 1rem; border-left: 2px solid var(--brand); color: var(--ink-2); font-size: 1rem; }
+.next-title { font-size: 1.15rem; margin-top: 0.5rem; }
+.next-steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+.next-steps li { counter-increment: step; position: relative; padding-left: 2.6rem; color: var(--ink-2); font-size: 0.98rem; }
+.next-steps li::before { content: counter(step); position: absolute; left: 0; top: 0.05rem; display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; border: 1px solid var(--brand); color: var(--brand); font-weight: 600; font-size: 0.9rem; }
+.next-steps strong { color: var(--ink); }
+.form-reassure { text-align: center; color: var(--ink-2); font-size: 0.875rem; margin-top: -0.25rem; }
 .book-points strong { color: var(--ink); font-weight: 600; }
 .book-panel { display: grid; min-width: 0; }
 .thanks:focus { outline: none; }
@@ -401,6 +409,42 @@ mark {
 .quick dd { margin: 0; }
 .footer-link { color: var(--ink-2); }
 .footer-link:hover { color: var(--brand); }
+.footer-nav { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; }
+
+/* Level pages (KS3, GCSE, A-level, Further Maths) */
+.level-page .hero-copy .eyebrow { margin-bottom: 0.9rem; }
+.level-page h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.level-cover { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(1.5rem, 5vw, 4rem); align-items: start; }
+.level-cover-body { display: grid; gap: 1rem; color: var(--ink-2); font-size: 1.0625rem; }
+.level-cover-body strong { color: var(--ink); }
+.level-quotes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.25rem; }
+@media (max-width: 960px) { .level-cover { grid-template-columns: minmax(0, 1fr); } }
+
+/* A booking prompt at the end of a section */
+.section-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; margin-top: clamp(1.75rem, 4vw, 2.5rem); }
+.section-cta p { color: var(--ink-2); font-size: 0.95rem; margin: 0; }
+.prices-intro .actions { margin-top: 1.25rem; }
+
+/* Phones: a slim booking bar along the bottom, once the top of the page has scrolled away */
+.cta-bar { display: none; }
+@media (max-width: 900px) {
+  .cta-bar {
+    position: fixed; z-index: 15; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    padding: 0.65rem max(1rem, env(safe-area-inset-right)) calc(0.65rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px);
+    border-top: 1px solid var(--line);
+    transform: translateY(110%); transition: transform 0.25s ease;
+  }
+  .cta-bar[hidden] { display: flex; visibility: hidden; }
+  .cta-bar.is-shown { transform: none; visibility: visible; }
+  .cta-bar p { display: grid; line-height: 1.25; font-size: 0.85rem; color: var(--ink-2); margin: 0; }
+  .cta-bar strong { color: var(--ink); font-size: 0.95rem; }
+  .cta-bar .btn { flex: none; }
+  body:has(.cta-bar.is-shown) .site-footer { padding-bottom: 4.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .cta-bar { transition: none; } }
 
 .not-found { display: grid; gap: 1.1rem; justify-items: start; max-width: 36rem; padding-block: clamp(2rem, 8vw, 5rem); }
 .not-found p:not(.eyebrow) { color: var(--ink-2); }

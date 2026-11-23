@@ -35,6 +35,32 @@
     if (!still) setInterval(function () { if (!paused && !document.hidden) step(1); }, 5000);
   })();
 
+  // Phones: show the booking bar once the top of the page has gone, and hide it again
+  // near the closing "Ready to get started?" box (which has its own button) and the footer.
+  (function () {
+    var bar = document.getElementById('cta-bar');
+    if (!bar || !('IntersectionObserver' in window)) return;
+    var hero = document.querySelector('.hero .actions');
+    var ends = document.querySelectorAll('.closing, .site-footer');
+    var heroGone = false, endInView = false;
+    function update() {
+      var show = heroGone && !endInView;
+      bar.classList.toggle('is-shown', show);
+      bar.hidden = !show;
+    }
+    new IntersectionObserver(function (entries) {
+      heroGone = !entries[0].isIntersecting && entries[0].boundingClientRect.top < 0;
+      update();
+    }).observe(hero);
+    var seen = new Set();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) seen.add(e.target); else seen.delete(e.target); });
+      endInView = seen.size > 0;
+      update();
+    });
+    ends.forEach(function (el) { io.observe(el); });
+  })();
+
   // Forms: both send to your email through Web3Forms. Paste your access key here (see README).
   var WEB3FORMS_KEY = '980257b5-da28-4e19-800e-0b23003da30c';
   var CONTACT_EMAIL = 'hello@primemathstutoring.co.uk';
@@ -57,6 +83,13 @@
     form.addEventListener('change', clear);
 
     // A link like /contact?topic=prices picks the matching topic, then tidies the address.
+    // A link like /book?subject=GCSE%20Maths (from the level pages) chooses that subject.
+    var subject = new URLSearchParams(location.search).get('subject');
+    var subjectBox = form.querySelector('select[name="Subject"]');
+    if (subject && subjectBox) {
+      Array.prototype.forEach.call(subjectBox.options, function (o) { if (o.text === subject) subjectBox.value = o.value || o.text; });
+    }
+
     var wanted = new URLSearchParams(location.search).get('topic') || location.hash.slice(1);
     var topic = wanted && form.querySelector('[data-topic="' + wanted + '"]');
     if (topic) {
