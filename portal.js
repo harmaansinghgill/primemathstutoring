@@ -198,17 +198,6 @@
     });
   }
 
-  // Messages and notifications only, for live updates
-  function loadLive() {
-    return Promise.all([
-      client.from('messages').select('*').order('created_at', { ascending: true }),
-      client.from('thread_reads').select('*'),
-      client.from('notifications').select('*').order('created_at', { ascending: false }).limit(60),
-    ]).then(function (r) {
-      D.messages = check(r[0]); D.reads = check(r[1]); D.notifications = check(r[2]);
-    });
-  }
-
   // After a change: reload, then redraw the open tab, keeping open sections and half-typed text.
   function refresh() {
     return load().then(function () { renderTab(tab, true); renderBadges(); });
@@ -416,18 +405,28 @@
   // New messages and notifications arrive straight away where Supabase Realtime is available,
   // and every minute otherwise.
   var liveTimer = null;
+  // Safe to redraw a tab unless someone is typing in it or has chosen a file to upload
+  function safeToRedraw(root) {
+    if (!root || root.hidden) return false;
+    var active = document.activeElement;
+    if (active && root.contains(active) && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) return false;
+    return !Array.prototype.some.call(root.querySelectorAll('input[type="file"]'), function (i) { return i.files && i.files.length; });
+  }
   function liveSoon() {
     clearTimeout(liveTimer);
     liveTimer = setTimeout(function () {
       if (!D) return;
-      loadLive().then(function () {
+      // Reload everything (it's small), so new hand-ins, marks and homework show up too, not just messages.
+      load().then(function () {
         renderBadges();
+        renderSummary();
         if (!$('notif-panel').hidden) renderNotifications();
-        Threads.refreshAll();
+        var root = panelOf(tab);
+        if (tab !== 'messages' && tab !== 'settings' && safeToRedraw(root)) renderTab(tab, true);
+        else Threads.refreshAll();
         if (staff) StaffViews.refreshInbox();
         if (staff && Threads.open && tab === 'messages' && unreadIn(Threads.open)) Threads.markRead(Threads.open);
         if (!staff && tab === 'messages' && unreadIn(me.id)) Threads.markRead(me.id);
-        renderSummary();
       }).catch(function () {});
     }, 400);
   }
