@@ -602,20 +602,23 @@ html:has(.print-doc), .print-doc { background: #FFFFFF; }
 .text-button { background: none; border: 0; padding: 0; font: inherit; color: var(--brand); cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; }
 .text-button:hover { color: var(--brand-hover); }
 .account-name { color: var(--ink-2); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14rem; }
-.portal-shell { display: grid; gap: 1.5rem; }
+.portal-shell { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+.portal-shell > *, .app-panel > *, .hw-card > *, .thread > *, .msg > * { min-width: 0; }
+.self-mark-box, .hw-feedback, .portal-note, .inbox-item, .inbox-thread, .convo, .msg, .notif-text, .student-form-head, .toggle > span, .res-card > div:first-child { grid-template-columns: minmax(0, 1fr); }
+.self-mark-box > *, .hw-feedback > *, .portal-note > *, .inbox-thread > *, .convo > * { min-width: 0; }
 .portal-head h1 { font-size: clamp(1.9rem, 4vw, 2.5rem); margin-top: 0.4rem; }
 .portal-section-title { font-size: 1.3rem; margin-bottom: 0.9rem; }
 .portal-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 2.5rem); align-items: start; }
 .portal-grid-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
-.stack { display: grid; gap: 0.9rem; }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; }
 .empty { color: var(--ink-2); padding: 1.25rem; border: 1px dashed var(--line); border-radius: var(--radius); }
 .pill-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0.25rem; width: fit-content; max-width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 999px; }
 .pill-tabs button { background: none; border: 0; font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--ink-2); padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer; }
 .pill-tabs button:hover { color: var(--ink); }
 .pill-tabs button[aria-current="true"] { color: var(--ink); background: color-mix(in srgb, var(--brand) 18%, transparent); }
-.hw-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; display: grid; gap: 0.75rem; }
+.hw-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
 .hw-card header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5rem 1rem; }
-.hw-card h3 { font-size: 1.1rem; }
+.hw-card h3 { font-size: 1.1rem; overflow-wrap: anywhere; }
 .hw-instructions { color: var(--ink-2); white-space: pre-wrap; }
 .chip-status { font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.65rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap; }
 .is-overdue .chip-status { color: var(--error); border-color: color-mix(in srgb, var(--error) 50%, transparent); }
@@ -647,6 +650,7 @@ html:has(.print-doc), .print-doc { background: #FFFFFF; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .file-link::before { content: "\2193"; color: var(--brand); flex: none; }
+.file-link > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-link:hover { border-color: var(--brand); }
 .file-link:disabled { opacity: 0.6; cursor: wait; }
 .hw-card .hw-upload { padding: 0.9rem 0 0; gap: 0.8rem; border-top: 1px solid var(--line); }
@@ -682,7 +686,7 @@ html:has(.print-doc), .print-doc { background: #FFFFFF; }
 .bell .badge { position: absolute; top: -0.3rem; right: -0.35rem; }
 .notif-panel {
   position: fixed; z-index: 30; top: 4.6rem; right: max(1rem, calc((100vw - 84rem) / 2 + 1rem));
-  width: min(24rem, calc(100vw - 2rem)); max-height: min(34rem, calc(100vh - 6rem)); display: flex; flex-direction: column;
+  width: min(24rem, calc(100vw - 2rem)); max-height: min(34rem, calc(100vh - 6rem)); max-height: min(34rem, calc(100dvh - 6rem)); display: flex; flex-direction: column;
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
 }
 .notif-panel[hidden] { display: none; }
@@ -730,7 +734,7 @@ html:has(.print-doc), .print-doc { background: #FFFFFF; }
 .comments { border-top: 1px solid var(--line); padding-top: 0.75rem; }
 .comments > summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--ink); }
 .comments[open] > summary { margin-bottom: 0.75rem; }
-.thread { display: grid; gap: 0.75rem; }
+.thread { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
 .thread-list { display: grid; gap: 0.6rem; max-height: 26rem; overflow-y: auto; padding-right: 0.25rem; }
 .thread.is-compact .thread-list { max-height: 18rem; }
 .thread-empty { color: var(--ink-2); font-size: 0.9rem; }
@@ -741,12 +745,13 @@ html:has(.print-doc), .print-doc { background: #FFFFFF; }
 .msg-meta strong { color: var(--ink); font-weight: 600; }
 .msg-body { white-space: normal; overflow-wrap: anywhere; font-size: 0.95rem; }
 .msg-files { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.msg-about { justify-self: start; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 0.15rem 0.6rem; font: inherit; font-size: 0.78rem; color: var(--brand); cursor: pointer; }
-.msg-form { display: grid; gap: 0.5rem; }
+.msg-about { justify-self: start; max-width: 100%; text-align: left; background: none; border: 1px solid var(--line); border-radius: 8px; padding: 0.2rem 0.6rem; font: inherit; font-size: 0.78rem; color: var(--brand); cursor: pointer; }
+.msg-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+.msg-form > *, .msg-actions > * { min-width: 0; }
 .msg-form textarea { min-height: 3.2rem; resize: vertical; }
 .msg-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .msg-actions .btn { margin-left: auto; border: 0; cursor: pointer; }
-.msg-hw { width: auto; max-width: 100%; min-height: 2.4rem; padding: 0.4rem 2.4rem 0.4rem 0.75rem; font-size: 0.88rem; }
+.msg-hw { flex: 0 1 auto; width: auto; max-width: 100%; min-height: 2.4rem; padding: 0.4rem 2.4rem 0.4rem 0.75rem; font-size: 0.88rem; }
 .msg-attach { position: relative; display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 0.4rem 0.85rem; font-size: 0.88rem; color: var(--ink-2); cursor: pointer; }
 .msg-attach:hover, .msg-attach.has-files { border-color: var(--brand); color: var(--ink); }
 .msg-attach input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
@@ -768,6 +773,30 @@ html:has(.print-doc), .print-doc { background: #FFFFFF; }
 .inbox-thread-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
 .inbox-thread-head h2 { font-size: 1.2rem; }
 .inbox-back { display: none; font-size: 0.9rem; }
+
+/* On phones and tablets, boxes you type in use 16px text, so iPhone Safari doesn't zoom in when you tap them */
+@media (pointer: coarse), (max-width: 900px) {
+  .msg-hw, .toolbar-select select, .due-form input, .msg-form textarea { font-size: 16px; }
+}
+
+/* Student area: keeping long names, links and file names inside the screen */
+details.hw-card { display: block; }
+details.hw-card > *:not(summary) { margin-top: 0.75rem; }
+.mark-row { grid-template-columns: minmax(0, 1fr); }
+.mark-row > *, .hw-files > *, .msg-files > *, .res-actions > * { min-width: 0; max-width: 100%; }
+.file-row { max-width: 100%; min-width: 0; }
+.file-row .file-link { min-width: 0; flex: 0 1 auto; }
+.chip-status { max-width: 100%; white-space: normal; text-align: center; }
+.mark-row-head strong, .notif-text, .portal-note p, .hw-files p, .msg-meta, .inbox-name, .student-form-head h3, .self-mark-answers p { overflow-wrap: anywhere; }
+
+/* Bigger tap areas on touchscreens, without changing how things look */
+@media (pointer: coarse) {
+  .comments > summary { padding-block: 0.6rem; }
+  .staff-hw summary { padding-block: 0.45rem; }
+  .recent > summary, details.portal-note > summary { padding-block: 0.5rem; }
+  .portal .text-button, .notif-head .text-button { display: inline-block; padding: 0.55rem 0.35rem; margin: -0.55rem -0.35rem; }
+  .danger-zone .text-button { margin-block: 0; }
+}
 
 /* Student area: settings */
 .toggles { display: grid; gap: 0.6rem; }

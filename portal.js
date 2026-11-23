@@ -536,7 +536,7 @@
     }));
   }
   function fileButton(path, name, label) {
-    return '<button type="button" class="file-link" data-path="' + esc(path) + '" data-name="' + esc(name) + '">' + esc(label || name) + '</button>';
+    return '<button type="button" class="file-link" data-path="' + esc(path) + '" data-name="' + esc(name) + '" title="' + esc(name) + '"><span>' + esc(label || name) + '</span></button>';
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('.file-link');
@@ -658,7 +658,9 @@
     if (e.key !== 'Enter' || e.shiftKey || e.isComposing || !t.closest || !t.closest('.msg-form') || t.tagName !== 'TEXTAREA') return;
     if (window.matchMedia('(pointer: coarse)').matches) return;
     e.preventDefault();
-    t.form.requestSubmit();
+    // requestSubmit is missing on older iPads (Safari before 16), so fall back to a submit event.
+    if (t.form.requestSubmit) t.form.requestSubmit();
+    else t.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   });
   document.addEventListener('change', function (e) {
     if (e.target.matches('.msg-attach input')) {
@@ -1095,7 +1097,7 @@
           '<div class="field"><label>Email</label><p class="portal-static">' + esc(p.email) + '</p></div></div>' +
           (isStudent
             ? '<fieldset class="field"><legend>Subjects</legend><div class="chips">' + subjects + '</div></fieldset>' +
-              '<div class="field"><label for="tutor-' + id + '">Tutor</label><select id="tutor-' + id + '" class="tutor-select"><option value="">Not assigned (admins get their emails)</option>' +
+              '<div class="field"><label for="tutor-' + id + '">Tutor</label><select id="tutor-' + id + '" class="tutor-select"><option value="">Not assigned yet</option>' +
                 tutors.map(function (t) { return '<option value="' + esc(t.id) + '"' + (p.tutor_id === t.id ? ' selected' : '') + '>' + esc(t.full_name || t.email) + '</option>'; }).join('') + '</select></div>' +
               '<div class="field-row"><div class="field"><label for="pname-' + id + '">Parent or guardian <span class="optional">Optional</span></label>' +
                 '<input id="pname-' + id + '" class="parent-name" data-keep="pname-' + id + '" value="' + esc(p.parent_name || '') + '" placeholder="Name"></div>' +
